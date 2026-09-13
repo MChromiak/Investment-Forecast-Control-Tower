@@ -1,0 +1,317 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: API specification
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: control-tower
+    description: Investment forecast control tower operations
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /control-tower:
+    get:
+      operationId: getControlTower
+      tags: [control-tower]
+      summary: Get control tower state
+      responses:
+        "200":
+          description: Control tower state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ControlTowerState"
+  /control-tower/actions:
+    post:
+      operationId: performControlTowerAction
+      tags: [control-tower]
+      summary: Perform a workflow action
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ControlTowerActionInput"
+      responses:
+        "200":
+          description: Updated control tower state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ControlTowerState"
+  /control-tower/reset:
+    post:
+      operationId: resetControlTower
+      tags: [control-tower]
+      summary: Reset demo data
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResetInput"
+      responses:
+        "200":
+          description: Reset control tower state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ControlTowerState"
+  /control-tower/audit-package:
+    get:
+      operationId: getAuditPackage
+      tags: [control-tower]
+      summary: Get an audit package
+      responses:
+        "200":
+          description: Audit package
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuditPackage"
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+    ControlTowerState:
+      type: object
+      required: [meta, metrics, projects, records, exceptions, documents, activity, batch, config, scenarios]
+      properties:
+        meta:
+          $ref: "#/components/schemas/Meta"
+        metrics:
+          $ref: "#/components/schemas/Metrics"
+        projects:
+          type: array
+          items:
+            $ref: "#/components/schemas/Project"
+        records:
+          type: array
+          items:
+            $ref: "#/components/schemas/ForecastRecord"
+        exceptions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Exception"
+        documents:
+          type: array
+          items:
+            $ref: "#/components/schemas/SourceDocument"
+        activity:
+          type: array
+          items:
+            $ref: "#/components/schemas/Activity"
+        batch:
+          $ref: "#/components/schemas/SubmissionBatch"
+        config:
+          $ref: "#/components/schemas/Configuration"
+        scenarios:
+          type: array
+          items:
+            $ref: "#/components/schemas/Scenario"
+    Meta:
+      type: object
+      required: [activePeriod, persona, environment, currentScenario, guidedDemo]
+      properties:
+        activePeriod: { type: string }
+        persona: { type: string }
+        environment: { type: string }
+        currentScenario: { type: string }
+        guidedDemo: { type: boolean }
+        playbackStep: { type: integer }
+    Metrics:
+      type: object
+      required: [proposedForecast, actualCost, movement, wbsRecords, readyForSac, openExceptions, projectsInScope, heldRecords, blockedRecords, excludedRecords]
+      properties:
+        proposedForecast: { type: number }
+        actualCost: { type: number }
+        movement: { type: number }
+        wbsRecords: { type: integer }
+        readyForSac: { type: integer }
+        openExceptions: { type: integer }
+        projectsInScope: { type: integer }
+        heldRecords: { type: integer }
+        blockedRecords: { type: integer }
+        excludedRecords: { type: integer }
+    Project:
+      type: object
+      required: [id, code, name, tier, owner, actuals, existingForecast, proposedForecast, movement, exceptions, readiness, wbsCount]
+      properties:
+        id: { type: string }
+        code: { type: string }
+        name: { type: string }
+        tier: { type: string }
+        owner: { type: string }
+        actuals: { type: number }
+        existingForecast: { type: number }
+        proposedForecast: { type: number }
+        movement: { type: number }
+        exceptions: { type: integer }
+        readiness: { type: string }
+        wbsCount: { type: integer }
+        status: { type: string }
+    ForecastRecord:
+      type: object
+      required: [id, projectId, projectCode, projectName, wbs, description, component, period, actual, commitment, existing, proposed, movement, source, method, validation, exception, review, submission]
+      properties:
+        id: { type: string }
+        projectId: { type: string }
+        projectCode: { type: string }
+        projectName: { type: string }
+        wbs: { type: string }
+        description: { type: string }
+        component: { type: string }
+        period: { type: string }
+        actual: { type: number }
+        commitment: { type: number }
+        existing: { type: number }
+        proposed: { type: number }
+        movement: { type: number }
+        source: { type: string }
+        method: { type: string }
+        validation: { type: string }
+        exception: { type: string }
+        review: { type: string }
+        submission: { type: string }
+        confidence: { type: string }
+    Exception:
+      type: object
+      required: [id, projectId, projectCode, projectName, wbs, type, severity, component, owner, status, title, impact, observation, recommendation]
+      properties:
+        id: { type: string }
+        projectId: { type: string }
+        projectCode: { type: string }
+        projectName: { type: string }
+        wbs: { type: string }
+        type: { type: string }
+        severity: { type: string }
+        component: { type: string }
+        owner: { type: string }
+        status: { type: string }
+        title: { type: string }
+        impact: { type: number }
+        observation: { type: string }
+        evidence: { type: string }
+        recommendation: { type: string }
+        decision: { type: string }
+        clarification: { type: string }
+    SourceDocument:
+      type: object
+      required: [id, name, type, projectName, period, submitter, date, sourceTotal, extractedTotal, records, status, validation]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        type: { type: string }
+        projectName: { type: string }
+        period: { type: string }
+        submitter: { type: string }
+        date: { type: string }
+        sourceTotal: { type: number }
+        extractedTotal: { type: number }
+        records: { type: integer }
+        status: { type: string }
+        validation: { type: string }
+    Activity:
+      type: object
+      required: [id, time, actor, role, action, detail]
+      properties:
+        id: { type: string }
+        time: { type: string }
+        actor: { type: string }
+        role: { type: string }
+        action: { type: string }
+        detail: { type: string }
+        project: { type: string }
+    SubmissionBatch:
+      type: object
+      required: [id, status, approved, submitted, value, ready, held, blocked, excluded, unresolvedBlockers, submittedAt, receipt]
+      properties:
+        id: { type: string }
+        status: { type: string }
+        approved: { type: boolean }
+        submitted: { type: boolean }
+        value: { type: number }
+        ready: { type: integer }
+        held: { type: integer }
+        blocked: { type: integer }
+        excluded: { type: integer }
+        unresolvedBlockers: { type: integer }
+        submittedAt: { type: ["string", "null"] }
+        receipt: { type: ["string", "null"] }
+    Configuration:
+      type: object
+      required: [label, thresholds, overheadRate, allowedCurrency, periods]
+      properties:
+        label: { type: string }
+        thresholds:
+          type: object
+          additionalProperties: true
+        overheadRate: { type: number }
+        allowedCurrency: { type: string }
+        periods:
+          type: array
+          items: { type: string }
+    Scenario:
+      type: object
+      required: [id, name, project, description, status, currentStep, steps]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        project: { type: string }
+        description: { type: string }
+        status: { type: string }
+        currentStep: { type: integer }
+        steps:
+          type: array
+          items: { type: string }
+    ControlTowerActionInput:
+      type: object
+      required: [action]
+      properties:
+        action: { type: string }
+        recordId: { type: ["string", "null"] }
+        exceptionId: { type: ["string", "null"] }
+        scenarioId: { type: ["string", "null"] }
+        reason: { type: ["string", "null"] }
+        value: { type: ["number", "null"] }
+    ResetInput:
+      type: object
+      properties:
+        scope: { type: string, enum: [demo, scenario, playback] }
+        scenarioId: { type: ["string", "null"] }
+    AuditPackage:
+      type: object
+      required: [generatedAt, reference, summary, events]
+      properties:
+        generatedAt: { type: string }
+        reference: { type: string }
+        summary:
+          type: object
+          additionalProperties: true
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/Activity"
+
